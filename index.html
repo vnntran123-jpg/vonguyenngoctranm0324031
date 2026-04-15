@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Trị Nội Bộ Trại Gà Bình Thuận</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 10px; }
+        .sidebar-link { transition: all 0.3s ease; border-left: 4px solid transparent; }
+        .sidebar-link:hover, .sidebar-link.active { background: linear-gradient(90deg, rgba(245,158,11,0.15) 0%, rgba(251,191,36,0.05) 100%); border-left-color: #f59e0b; color: #d97706; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(245,158,11,0.15); }
+        .stat-card { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
+        .btn-primary { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); transition: all 0.3s ease; }
+        .btn-primary:hover { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); transform: translateY(-1px); box-shadow: 0 4px 15px rgba(245,158,11,0.4); }
+        .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); transition: all 0.3s ease; }
+        .btn-danger:hover { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
+        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); transition: all 0.3s ease; }
+        .btn-success:hover { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        input, select, textarea { transition: border-color 0.3s ease, box-shadow 0.3s ease; }
+        input:focus, select:focus, textarea:focus { border-color: #f59e0b !important; box-shadow: 0 0 0 3px rgba(245,158,11,0.15) !important; outline: none; }
+        .table-row:hover { background-color: #fffbeb; }
+        .gradient-header { background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%); }
+        .sidebar-gradient { background: linear-gradient(180deg, #1e1b16 0%, #292524 50%, #1c1917 100%); }
+        .badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 9999px; font-weight: 600; }
+        .modal-overlay { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        .tab-btn { transition: all 0.3s ease; }
+        .tab-btn.active { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+        .tab-btn:not(.active):hover { background: #fef3c7; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="sidebar-gradient fixed top-0 left-0 h-full w-64 z-50 flex flex-col shadow-2xl">
+    <div class="p-5 border-b border-amber-900/30">
+        <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+                <i class="fas fa-egg text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-amber-400 font-bold text-sm leading-tight">TRẠI GÀ</h1>
+                <p class="text-amber-200/70 text-xs">Bình Thuận</p>
+            </div>
+        </div>
+    </div>
+    <nav class="flex-1 py-4 overflow-y-auto">
+        <p class="px-5 text-[10px] text-amber-600/50 font-semibold uppercase tracking-wider mb-2">Tổng quan</p>
+        <a onclick="showSection('dashboard')" class="sidebar-link active flex items-center gap-3 px-5 py-3 text-amber-100/80 cursor-pointer text-sm" id="nav-dashboard">
+            <i class="fas fa-chart-pie w-5 text-center text-amber-500"></i> Dashboard
+        </a>
+        <p class="px-5 text-[10px] text-amber-600/50 font-semibold uppercase tracking-wider mt-4 mb-2">Quản lý</p>
+        <a onclick="showSection('flock')" class="sidebar-link flex items-center gap-3 px-5 py-3 text-amber-100/80 cursor-pointer text-sm" id="nav-flock">
+            <i class="fas fa-feather-alt w-5 text-center text-amber-500"></i> Quản lý Đàn
+        </a>
+        <a onclick="showSection('health')" class="sidebar-link flex items-center gap-3 px-5 py-3 text-amber-100/80 cursor-pointer text-sm" id="nav-health">
+            <i class="fas fa-heartbeat w-5 text-center text-amber-500"></i> Sức khỏe & Thú y
+        </a>
+        <a onclick="showSection('feed')" class="sidebar-link flex items-center gap-3 px-5 py-3 text-amber-100/80 cursor-pointer text-sm" id="nav-feed">
+            <i class="fas fa-seedling w-5 text-center text-amber-500"></i> Thức ăn & Môi trường
+        </a>
+        <a onclick="showSection('production')" class="sidebar-link flex items-center gap-3 px-5 py-3 text-amber-100/80 cursor-pointer text-sm" id="nav-production">
+            <i class="fas fa-industry w-5 text-center text-amber-500"></i> Sản xuất & Kinh doanh
+        </a>
+        <a onclick="showSection('report')" class="sidebar-link flex items-center gap-3 px-5 py-3 text-amber-100/80 cursor-pointer text-sm" id="nav-report">
+            <i class="fas fa-file-invoice-dollar w-5 text-center text-amber-500"></i> Báo cáo & Phân tích
+        </a>
+    </nav>
+    <div class="p-4 border-t border-amber-900/30">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-amber-600 flex items-center justify-center">
+                <i class="fas fa-user text-white text-xs"></i>
+            </div>
+            <div>
+                <p class="text-amber-200 text-xs font-semibold">Quản trị viên</p>
+                <p class="text-amber-500/60 text-[10px]"><i class="fas fa-circle text-green-400 pulse-dot mr-1" style="font-size:6px"></i>Trực tuyến</p>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="ml-64 min-h-screen">
+    <!-- TOP BAR -->
+    <header class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-40 shadow-sm">
+        <div>
+            <h2 class="text-lg font-bold text-gray-800" id="page-title">Dashboard</h2>
+            <p class="text-xs text-gray-400" id="page-subtitle">Tổng quan hệ thống trại gà Bình Thuận</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-xs text-gray-400"><i class="far fa-calendar-alt mr-1"></i><span id="current-date"></span></span>
+            <button class="relative p-2 text-gray-400 hover:text-amber-500 transition">
+                <i class="fas fa-bell"></i>
+                <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-white text-[9px] flex items-center justify-center" id="notif-count">3</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="p-6">
+        <!-- ============ DASHBOARD ============ -->
+        <section id="section-dashboard" class="fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+                <div class="card stat-card rounded-2xl p-5 border border-amber-200/50">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center"><i class="fas fa-kiwi-bird text-white"></i></div>
+                        <span class="badge bg-green-100 text-green-700"><i class="fas fa-arrow-up mr-1"></i>+5.2%</span>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-800" id="dash-total-flock">0</p>
+                    <p class="text-xs text-gray-500 mt-1">Tổng đàn hiện tại</p>
+                </div>
+                <div class="card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center"><i class="fas fa-skull-crossbones text-white text-sm"></i></div>
+                        <span class="badge bg-red-100 text-red-700" id="dash-mortality-badge">0%</span>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-800" id="dash-mortality">0</p>
+                    <p class="text-xs text-gray-500 mt-1">Tỷ lệ chết (tháng)</p>
+                </div>
+                <div class="card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center"><i class="fas fa-egg text-white text-sm"></i></div>
+                        <span class="badge bg-green-100 text-green-700"><i class="fas fa-arrow-up mr-1"></i>+3.1%</span>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-800" id="dash-eggs">0</p>
+                    <p class="text-xs text-gray-500 mt-1">Trứng hôm nay</p>
+                </div>
+                <div class="card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center"><i class="fas fa-coins text-white text-sm"></i></div>
+                        <span class="badge bg-blue-100 text-blue-700">Tháng này</span>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-800" id="dash-revenue">0đ</p>
+                    <p class="text-xs text-gray-500 mt-1">Doanh thu</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+                <div class="lg:col-span-2 card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-chart-line text-amber-500 mr-2"></i>Biểu đồ Doanh thu & Chi phí (6 tháng)</h3>
+                    <canvas id="dashRevenueChart" height="200"></canvas>
+                </div>
+                <div class="card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-tasks text-amber-500 mr-2"></i>Nhắc nhở hôm nay</h3>
+                    <div class="space-y-3" id="dash-reminders">
+                        <div class="flex items-start gap-3 p-3 bg-amber-50 rounded-xl border border-amber-100">
+                            <i class="fas fa-syringe text-amber-500 mt-0.5"></i>
+                            <div><p class="text-xs font-semibold text-gray-700">Tiêm vaccine Newcastle</p><p class="text-[10px] text-gray-400">Lô GĐ-001 · Đã quá hạn 2 ngày</p></div>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-red-50 rounded-xl border border-red-100">
+                            <i class="fas fa-exclamation-triangle text-red-500 mt-0.5"></i>
+                            <div><p class="text-xs font-semibold text-gray-700">Tỷ lệ chết tăng bất thường</p><p class="text-[10px] text-gray-400">Lô GT-003 · 2.5% trong 3 ngày</p></div>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                            <i class="fas fa-temperature-high text-blue-500 mt-0.5"></i>
+                            <div><p class="text-xs font-semibold text-gray-700">Nhiệt độ chuồng cao</p><p class="text-[10px] text-gray-400">Chuồng A3 · 38°C vượt ngưỡng</p></div>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-green-50 rounded-xl border border-green-100">
+                            <i class="fas fa-truck text-green-500 mt-0.5"></i>
+                            <div><p class="text-xs font-semibold text-gray-700">Xuất chuồng lô GT-002</p><p class="text-[10px] text-gray-400">Dự kiến ngày mai · 2,500 con</p></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div class="card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-warehouse text-amber-500 mr-2"></i>Tồn kho Thức ăn</h3>
+                    <canvas id="dashFeedChart" height="180"></canvas>
+                </div>
+                <div class="card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-percentage text-amber-500 mr-2"></i>Phân bổ Đàn theo Loại</h3>
+                    <canvas id="dashFlockPieChart" height="180"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ QUẢN LÝ ĐÀN ============ -->
+        <section id="section-flock" class="hidden fade-in">
+            <!-- Sub-tabs -->
+            <div class="flex gap-2 mb-5 flex-wrap">
+                <button class="tab-btn active px-4 py-2 rounded-xl text-sm font-medium" onclick="showFlockTab('info')">
+                    <i class="fas fa-list mr-1"></i>Thông tin Đàn
+                </button>
+                <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-200" onclick="showFlockTab('variation')">
+                    <i class="fas fa-exchange-alt mr-1"></i>Biến động Đàn
+                </button>
+                <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-200" onclick="showFlockTab('growth')">
+                    <i class="fas fa-chart-area mr-1"></i>Biểu đồ Sinh trưởng
+                </button>
+            </div>
+
+            <!-- Tab: Thông tin Đàn -->
+            <div id="flock-tab-info">
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4 flex items-center"><i class="fas fa-plus-circle text-amber-500 mr-2"></i>Nhập Lô/Đàn Mới</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Mã lô/đàn</label>
+                            <input type="text" id="flock-id" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: GT-001">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Ngày nhập đàn</label>
+                            <input type="date" id="flock-date" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Giống gà</label>
+                            <select id="flock-breed" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                                <option value="">-- Chọn giống --</option>
+                                <option value="Gà thịt">Gà thịt</option>
+                                <option value="Gà đẻ">Gà đẻ</option>
+                                <option value="Gà giống">Gà giống</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Nguồn gốc con giống</label>
+                            <input type="text" id="flock-origin" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: CP Việt Nam">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Số lượng nhập</label>
+                            <input type="number" id="flock-qty" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: 5000">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Chuồng nuôi</label>
+                            <input type="text" id="flock-house" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: Chuồng A1">
+                        </div>
+                        <div class="lg:col-span-2 flex items-end">
+                            <button onclick="addFlock()" class="btn-primary text-white px-6 py-2 rounded-xl text-sm font-medium w-full"><i class="fas fa-save mr-2"></i>Lưu Lô/Đàn</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-table text-amber-500 mr-2"></i>Danh sách Đàn</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead><tr class="bg-amber-50 text-left">
+                                <th class="px-4 py-3 rounded-tl-xl font-semibold text-gray-600">Mã lô</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Ngày nhập</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Giống</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Nguồn gốc</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">SL ban đầu</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">SL hiện tại</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Chuồng</th>
+                                <th class="px-4 py-3 rounded-tr-xl font-semibold text-gray-600">Thao tác</th>
+                            </tr></thead>
+                            <tbody id="flock-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Biến động Đàn -->
+            <div id="flock-tab-variation" class="hidden">
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-exchange-alt text-amber-500 mr-2"></i>Cập nhật Biến động Hàng ngày</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Chọn lô</label>
+                            <select id="var-flock" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Ngày</label>
+                            <input type="date" id="var-date" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Số lượng nhập thêm</label>
+                            <input type="number" id="var-in" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value="0">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Số lượng xuất bán</label>
+                            <input type="number" id="var-out" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value="0">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="addVariation()" class="btn-primary text-white px-6 py-2 rounded-xl text-sm font-medium w-full"><i class="fas fa-check mr-2"></i>Cập nhật</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-history text-amber-500 mr-2"></i>Lịch sử Biến động</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead><tr class="bg-amber-50 text-left">
+                                <th class="px-4 py-3 rounded-tl-xl font-semibold text-gray-600">Ngày</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Mã lô</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Nhập thêm</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Xuất bán</th>
+                                <th class="px-4 py-3 rounded-tr-xl font-semibold text-gray-600">SL sau biến động</th>
+                            </tr></thead>
+                            <tbody id="variation-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Biểu đồ Sinh trưởng -->
+            <div id="flock-tab-growth" class="hidden">
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-weight text-amber-500 mr-2"></i>Nhập Trọng lượng Trung bình</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Chọn lô</label>
+                            <select id="growth-flock" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Tuần tuổi</label>
+                            <input type="number" id="growth-week" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: 4">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Trọng lượng TB (gram)</label>
+                            <input type="number" id="growth-weight" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: 850">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="addGrowth()" class="btn-primary text-white px-6 py-2 rounded-xl text-sm font-medium w-full"><i class="fas fa-chart-line mr-2"></i>Cập nhật</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-chart-area text-amber-500 mr-2"></i>Biểu đồ Sinh trưởng so với Chuẩn Giống</h3>
+                    <canvas id="growthChart" height="250"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ SỨC KHỎE & THÚ Y ============ -->
+        <section id="section-health" class="hidden fade-in">
+            <div class="flex gap-2 mb-5 flex-wrap">
+                <button class="tab-btn active px-4 py-2 rounded-xl text-sm font-medium" onclick="showHealthTab('vaccine')">
+                    <i class="fas fa-syringe mr-1"></i>Lịch Tiêm phòng
+                </button>
+                <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-200" onclick="showHealthTab('mortality')">
+                    <i class="fas fa-skull-crossbones mr-1"></i>Tỷ lệ Chết
+                </button>
+                <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-200" onclick="showHealthTab('medicine')">
+                    <i class="fas fa-pills mr-1"></i>Sử dụng Thuốc
+                </button>
+            </div>
+
+            <!-- Vaccine -->
+            <div id="health-tab-vaccine">
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-syringe text-amber-500 mr-2"></i>Thêm Lịch Tiêm Vaccine</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Chọn lô</label>
+                            <select id="vac-flock" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Loại Vaccine</label>
+                            <input type="text" id="vac-name" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: Newcastle">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Ngày tiêm</label>
+                            <input type="date" id="vac-date" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Nhắc lại sau (ngày)</label>
+                            <input type="number" id="vac-remind" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: 30">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="addVaccine()" class="btn-primary text-white px-6 py-2 rounded-xl text-sm font-medium w-full"><i class="fas fa-save mr-2"></i>Lưu</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-calendar-check text-amber-500 mr-2"></i>Danh sách Vaccine đã Tiêm & Lịch Nhắc</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead><tr class="bg-amber-50 text-left">
+                                <th class="px-4 py-3 rounded-tl-xl font-semibold text-gray-600">Mã lô</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Loại Vaccine</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Ngày tiêm</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Ngày nhắc lại</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Trạng thái</th>
+                                <th class="px-4 py-3 rounded-tr-xl font-semibold text-gray-600">Thao tác</th>
+                            </tr></thead>
+                            <tbody id="vaccine-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mortality -->
+            <div id="health-tab-mortality" class="hidden">
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-skull-crossbones text-red-500 mr-2"></i>Ghi chép Tỷ lệ Chết Hàng ngày</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Chọn lô</label>
+                            <select id="mort-flock" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Ngày</label>
+                            <input type="date" id="mort-date" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Số gà chết</label>
+                            <input type="number" id="mort-qty" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: 5">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Lý do (nếu có)</label>
+                            <input type="text" id="mort-reason" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: Bệnh CRD">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="addMortality()" class="btn-danger text-white px-6 py-2 rounded-xl text-sm font-medium w-full"><i class="fas fa-save mr-2"></i>Ghi nhận</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+                    <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                        <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-chart-bar text-red-500 mr-2"></i>Biểu đồ Tỷ lệ Chết 7 Ngày</h3>
+                        <canvas id="mortalityChart" height="200"></canvas>
+                    </div>
+                    <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                        <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-exclamation-triangle text-amber-500 mr-2"></i>Cảnh báo Dịch bệnh</h3>
+                        <div id="disease-alerts" class="space-y-2"></div>
+                    </div>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-list text-amber-500 mr-2"></i>Lịch sử Ghi chép</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead><tr class="bg-red-50 text-left">
+                                <th class="px-4 py-3 rounded-tl-xl font-semibold text-gray-600">Ngày</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Mã lô</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Số lượng chết</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Lý do</th>
+                                <th class="px-4 py-3 rounded-tr-xl font-semibold text-gray-600">Tỷ lệ</th>
+                            </tr></thead>
+                            <tbody id="mortality-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medicine -->
+            <div id="health-tab-medicine" class="hidden">
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-pills text-amber-500 mr-2"></i>Ghi chép Sử dụng Thuốc/Kháng sinh</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Chọn lô</label>
+                            <select id="med-flock" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Loại thuốc/Kháng sinh</label>
+                            <input type="text" id="med-name" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: Amoxicillin">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Liều lượng</label>
+                            <input type="text" id="med-dosage" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: 10mg/kg">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Ngày bắt đầu</label>
+                            <input type="date" id="med-start" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Ngày kết thúc</label>
+                            <input type="date" id="med-end" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Thời gian cách ly (ngày)</label>
+                            <input type="number" id="med-withdraw" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: 14">
+                        </div>
+                    </div>
+                    <button onclick="addMedicine()" class="btn-primary text-white px-6 py-2 rounded-xl text-sm font-medium mt-4"><i class="fas fa-save mr-2"></i>Lưu Ghi chép</button>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-clipboard-list text-amber-500 mr-2"></i>Danh sách Sử dụng Thuốc</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead><tr class="bg-amber-50 text-left">
+                                <th class="px-4 py-3 rounded-tl-xl font-semibold text-gray-600">Mã lô</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Thuốc</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Liều lượng</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Ngày BĐ</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Ngày KT</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Cách ly</th>
+                                <th class="px-4 py-3 rounded-tr-xl font-semibold text-gray-600">An toàn xuất</th>
+                            </tr></thead>
+                            <tbody id="medicine-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ THỨC ĂN & MÔI TRƯỜNG ============ -->
+        <section id="section-feed" class="hidden fade-in">
+            <div class="flex gap-2 mb-5 flex-wrap">
+                <button class="tab-btn active px-4 py-2 rounded-xl text-sm font-medium" onclick="showFeedTab('stock')">
+                    <i class="fas fa-warehouse mr-1"></i>Kho Thức ăn
+                </button>
+                <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-200" onclick="showFeedTab('env')">
+                    <i class="fas fa-thermometer-half mr-1"></i>Môi trường
+                </button>
+                <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-200" onclick="showFeedTab('light')">
+                    <i class="fas fa-lightbulb mr-1"></i>Lịch Chiếu sáng
+                </button>
+            </div>
+
+            <!-- Kho thức ăn -->
+            <div id="feed-tab-stock">
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-plus-circle text-amber-500 mr-2"></i>Nhập/Xuất Kho Thức ăn</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Ngày</label>
+                            <input type="date" id="feed-date" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Loại cám</label>
+                            <input type="text" id="feed-type" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: Cám C520">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Lượng nhập kho (kg)</label>
+                            <input type="number" id="feed-in" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value="0">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Lượng tiêu thụ (kg)</label>
+                            <input type="number" id="feed-out" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" value="0">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="addFeedStock()" class="btn-primary text-white px-6 py-2 rounded-xl text-sm font-medium w-full"><i class="fas fa-save mr-2"></i>Lưu</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+                    <div class="card stat-card rounded-2xl p-5 border border-amber-200/50">
+                        <p class="text-xs text-gray-500 mb-1"><i class="fas fa-boxes text-amber-500 mr-1"></i>Tồn kho hiện tại</p>
+                        <p class="text-2xl font-bold text-gray-800" id="feed-stock-total">0 kg</p>
+                    </div>
+                    <div class="card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                        <p class="text-xs text-gray-500 mb-1"><i class="fas fa-utensils text-orange-500 mr-1"></i>Tiêu thụ hôm nay</p>
+                        <p class="text-2xl font-bold text-gray-800" id="feed-today-consume">0 kg</p>
+                    </div>
+                    <div class="card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                        <p class="text-xs text-gray-500 mb-1"><i class="fas fa-sync text-green-500 mr-1"></i>FCR hiện tại</p>
+                        <p class="text-2xl font-bold text-gray-800" id="feed-fcr">0.00</p>
+                    </div>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-history text-amber-500 mr-2"></i>Lịch sử Nhập/Xuất Kho</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead><tr class="bg-amber-50 text-left">
+                                <th class="px-4 py-3 rounded-tl-xl font-semibold text-gray-600">Ngày</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Loại cám</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Nhập (kg)</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Tiêu thụ (kg)</th>
+                                <th class="px-4 py-3 rounded-tr-xl font-semibold text-gray-600">Tồn kho</th>
+                            </tr></thead>
+                            <tbody id="feed-stock-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Môi trường -->
+            <div id="feed-tab-env" class="hidden">
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-thermometer-half text-amber-500 mr-2"></i>Ghi chép Chỉ số Môi trường</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Ngày giờ</label>
+                            <input type="datetime-local" id="env-date" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Chuồng</label>
+                            <input type="text" id="env-house" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: A1">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Nhiệt độ (°C)</label>
+                            <input type="number" step="0.1" id="env-temp" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: 32">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Độ ẩm (%)</label>
+                            <input type="number" step="0.1" id="env-humid" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: 65">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Thông thoáng</label>
+                            <select id="env-vent" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                                <option value="Tốt">Tốt</option>
+                                <option value="Trung bình">Trung bình</option>
+                                <option value="Kém">Kém</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="addEnvData()" class="btn-primary text-white px-6 py-2 rounded-xl text-sm font-medium w-full"><i class="fas fa-save mr-2"></i>Lưu</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+                    <div class="card bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-5 border border-red-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-400 to-orange-500 flex items-center justify-center"><i class="fas fa-temperature-high text-white text-lg"></i></div>
+                            <div>
+                                <p class="text-xs text-gray-500">Nhiệt độ TB</p>
+                                <p class="text-2xl font-bold text-gray-800" id="env-avg-temp">--°C</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-5 border border-blue-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center"><i class="fas fa-tint text-white text-lg"></i></div>
+                            <div>
+                                <p class="text-xs text-gray-500">Độ ẩm TB</p>
+                                <p class="text-2xl font-bold text-gray-800" id="env-avg-humid">--%</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-5 border border-green-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center"><i class="fas fa-wind text-white text-lg"></i></div>
+                            <div>
+                                <p class="text-xs text-gray-500">Thông thoáng</p>
+                                <p class="text-2xl font-bold text-gray-800" id="env-avg-vent">--</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-chart-line text-amber-500 mr-2"></i>Biểu đồ Nhiệt độ & Độ ẩm</h3>
+                    <canvas id="envChart" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Lịch chiếu sáng -->
+            <div id="feed-tab-light" class="hidden">
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-lightbulb text-yellow-500 mr-2"></i>Thiết lập Lịch Chiếu sáng</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Chuồng</label>
+                            <input type="text" id="light-house" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: A1">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Giờ bật</label>
+                            <input type="time" id="light-on" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Giờ tắt</label>
+                            <input type="time" id="light-off" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Cường độ (lux)</label>
+                            <input type="number" id="light-lux" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: 30">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="addLightSchedule()" class="btn-primary text-white px-6 py-2 rounded-xl text-sm font-medium w-full"><i class="fas fa-save mr-2"></i>Lưu</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-clock text-amber-500 mr-2"></i>Lịch Chiếu sáng Các Chuồng</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead><tr class="bg-yellow-50 text-left">
+                                <th class="px-4 py-3 rounded-tl-xl font-semibold text-gray-600">Chuồng</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Giờ bật</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Giờ tắt</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Thời lượng</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Cường độ</th>
+                                <th class="px-4 py-3 rounded-tr-xl font-semibold text-gray-600">Thao tác</th>
+                            </tr></thead>
+                            <tbody id="light-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ SẢN XUẤT & KINH DOANH ============ -->
+        <section id="section-production" class="hidden fade-in">
+            <div class="flex gap-2 mb-5 flex-wrap">
+                <button class="tab-btn active px-4 py-2 rounded-xl text-sm font-medium" onclick="showProdTab('daily')">
+                    <i class="fas fa-egg mr-1"></i>Sản lượng Hàng ngày
+                </button>
+                <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-200" onclick="showProdTab('export')">
+                    <i class="fas fa-truck mr-1"></i>Xuất kho
+                </button>
+                <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-200" onclick="showProdTab('cost')">
+                    <i class="fas fa-money-bill-wave mr-1"></i>Chi phí Vận hành
+                </button>
+            </div>
+
+            <!-- Sản lượng hàng ngày -->
+            <div id="prod-tab-daily">
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-egg text-amber-500 mr-2"></i>Ghi nhận Sản lượng</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Chọn lô</label>
+                            <select id="prod-flock" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Ngày</label>
+                            <input type="date" id="prod-date" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Số trứng (gà đẻ)</label>
+                            <input type="number" id="prod-eggs" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Trọng lượng TB (g, gà thịt)</label>
+                            <input type="number" id="prod-weight" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="0">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="addProduction()" class="btn-primary text-white px-6 py-2 rounded-xl text-sm font-medium w-full"><i class="fas fa-save mr-2"></i>Lưu</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-chart-bar text-amber-500 mr-2"></i>Biểu đồ Sản lượng Trứng 7 ngày</h3>
+                    <canvas id="eggChart" height="200"></canvas>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead><tr class="bg-amber-50 text-left">
+                                <th class="px-4 py-3 rounded-tl-xl font-semibold text-gray-600">Ngày</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Mã lô</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Số trứng</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">TL trung bình</th>
+                                <th class="px-4 py-3 rounded-tr-xl font-semibold text-gray-600">Ghi chú</th>
+                            </tr></thead>
+                            <tbody id="production-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Xuất kho -->
+            <div id="prod-tab-export" class="hidden">
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-truck text-green-500 mr-2"></i>Thêm Phiếu Xuất kho</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Ngày xuất</label>
+                            <input type="date" id="exp-date" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Khách hàng</label>
+                            <input type="text" id="exp-customer" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: Chợ Phan Thiết">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Sản phẩm</label>
+                            <select id="exp-product" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                                <option value="Trứng">Trứng</option>
+                                <option value="Gà thịt">Gà thịt</option>
+                                <option value="Gà giống">Gà giống</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Số lượng</label>
+                            <input type="number" id="exp-qty" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: 500">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Đơn giá (VNĐ)</label>
+                            <input type="number" id="exp-price" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: 3500">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Trạng thái thanh toán</label>
+                            <select id="exp-payment" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                                <option value="Đã thanh toán">Đã thanh toán</option>
+                                <option value="Công nợ">Công nợ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="addExport()" class="btn-success text-white px-6 py-2 rounded-xl text-sm font-medium mt-4"><i class="fas fa-save mr-2"></i>Lưu Phiếu Xuất</button>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-file-invoice text-amber-500 mr-2"></i>Danh sách Phiếu Xuất</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead><tr class="bg-green-50 text-left">
+                                <th class="px-4 py-3 rounded-tl-xl font-semibold text-gray-600">Ngày</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Khách hàng</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Sản phẩm</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Số lượng</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Đơn giá</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Thành tiền</th>
+                                <th class="px-4 py-3 rounded-tr-xl font-semibold text-gray-600">Thanh toán</th>
+                            </tr></thead>
+                            <tbody id="export-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chi phí vận hành -->
+            <div id="prod-tab-cost" class="hidden">
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-money-bill-wave text-amber-500 mr-2"></i>Ghi nhận Chi phí</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Ngày</label>
+                            <input type="date" id="cost-date" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Loại chi phí</label>
+                            <select id="cost-type" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                                <option value="Tiền điện">Tiền điện</option>
+                                <option value="Tiền nước">Tiền nước</option>
+                                <option value="Nhân công">Nhân công</option>
+                                <option value="Thức ăn">Thức ăn</option>
+                                <option value="Thuốc thú y">Thuốc thú y</option>
+                                <option value="Vận chuyển">Vận chuyển</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Số tiền (VNĐ)</label>
+                            <input type="number" id="cost-amount" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="VD: 5000000">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 mb-1 block">Ghi chú</label>
+                            <input type="text" id="cost-note" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm" placeholder="Ghi chú thêm">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="addCost()" class="btn-danger text-white px-6 py-2 rounded-xl text-sm font-medium w-full"><i class="fas fa-save mr-2"></i>Ghi nhận</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+                    <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                        <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-chart-pie text-amber-500 mr-2"></i>Phân bổ Chi phí</h3>
+                        <canvas id="costPieChart" height="200"></canvas>
+                    </div>
+                    <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                        <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-list text-amber-500 mr-2"></i>Chi phí Gần đây</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead><tr class="bg-red-50 text-left">
+                                    <th class="px-3 py-2 rounded-tl-xl font-semibold text-gray-600 text-xs">Ngày</th>
+                                    <th class="px-3 py-2 font-semibold text-gray-600 text-xs">Loại</th>
+                                    <th class="px-3 py-2 font-semibold text-gray-600 text-xs">Số tiền</th>
+                                    <th class="px-3 py-2 rounded-tr-xl font-semibold text-gray-600 text-xs">Ghi chú</th>
+                                </tr></thead>
+                                <tbody id="cost-table"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ BÁO CÁO & PHÂN TÍCH ============ -->
+        <section id="section-report" class="hidden fade-in">
+            <div class="flex gap-2 mb-5 flex-wrap">
+                <button class="tab-btn active px-4 py-2 rounded-xl text-sm font-medium" onclick="showReportTab('pnl')">
+                    <i class="fas fa-file-invoice-dollar mr-1"></i>Báo cáo Lãi Lỗ
+                </button>
+                <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-200" onclick="showReportTab('forecast')">
+                    <i class="fas fa-chart-line mr-1"></i>Dự báo Sản lượng
+                </button>
+            </div>
+
+            <!-- P&L -->
+            <div id="report-tab-pnl">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+                    <div class="card bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-5 border border-green-200">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center"><i class="fas fa-arrow-down text-white"></i></div>
+                            <p class="text-xs text-gray-500 font-medium">Tổng Doanh thu</p>
+                        </div>
+                        <p class="text-2xl font-bold text-green-700" id="rpt-revenue">0 đ</p>
+                    </div>
+                    <div class="card bg-gradient-to-br from-red-50 to-rose-50 rounded-2xl p-5 border border-red-200">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center"><i class="fas fa-arrow-up text-white"></i></div>
+                            <p class="text-xs text-gray-500 font-medium">Tổng Chi phí</p>
+                        </div>
+                        <p class="text-2xl font-bold text-red-700" id="rpt-cost">0 đ</p>
+                    </div>
+                    <div class="card bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-5 border border-amber-200">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center"><i class="fas fa-balance-scale text-white"></i></div>
+                            <p class="text-xs text-gray-500 font-medium">Lợi nhuận ròng</p>
+                        </div>
+                        <p class="text-2xl font-bold" id="rpt-profit">0 đ</p>
+                    </div>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-chart-bar text-amber-500 mr-2"></i>Biểu đồ Lãi/Lỗ theo Tháng</h3>
+                    <canvas id="pnlChart" height="250"></canvas>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-table text-amber-500 mr-2"></i>Bảng Chi tiết Lãi/Lỗ</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead><tr class="bg-amber-50 text-left">
+                                <th class="px-4 py-3 rounded-tl-xl font-semibold text-gray-600">Khoản mục</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Số tiền (VNĐ)</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Tỷ lệ %</th>
+                                <th class="px-4 py-3 rounded-tr-xl font-semibold text-gray-600">Loại</th>
+                            </tr></thead>
+                            <tbody id="pnl-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forecast -->
+            <div id="report-tab-forecast" class="hidden">
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-5">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-crystal-ball text-amber-500 mr-2"></i>Dự báo Sản lượng & Ngày Xuất Chuồng</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead><tr class="bg-blue-50 text-left">
+                                <th class="px-4 py-3 rounded-tl-xl font-semibold text-gray-600">Mã lô</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Giống</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">SL hiện tại</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Tuổi (ngày)</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">Ngày xuất dự kiến</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600">SL xuất ước tính</th>
+                                <th class="px-4 py-3 rounded-tr-xl font-semibold text-gray-600">Doanh thu dự kiến</th>
+                            </tr></thead>
+                            <tbody id="forecast-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-700 mb-4"><i class="fas fa-chart-line text-amber-500 mr-2"></i>Biểu đồ Dự báo Doanh thu 6 Tháng Tới</h3>
+                    <canvas id="forecastChart" height="250"></canvas>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed bottom-6 right-6 bg-green-500 text-white px-5 py-3 rounded-xl shadow-2xl text-sm font-medium hidden z-50 flex items-center gap-2 transition-all">
+    <i class="fas fa-check-circle"></i><span id="toast-msg"></span>
+</div>
+
+<script>
+// ==================== DATA STORE (localStorage) ====================
+const DB = {
+    get(key) { return JSON.parse(localStorage.getItem('btfarm_'+key) || '[]'); },
+    set(key, data) { localStorage.setItem('btfarm_'+key, JSON.stringify(data)); },
+    push(key, item) { const d = this.get(key); d.push(item); this.set(key, d); return d; }
+};
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+    setDefaultDates();
+    loadDashboard();
+    initDashboardCharts();
+});
+
+function setDefaultDates() {
+    const today = new Date().toISOString().split('T')[0];
+    document.querySelectorAll('input[type="date"]').forEach(el => el.value = today);
+    const now = new Date();
+    const dtLocal = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+'T'+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    const dtEl = document.getElementById('env-date');
+    if(dtEl) dtEl.value = dtLocal;
+}
+
+// ==================== NAVIGATION ====================
+function showSection(section) {
+    document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('hidden'));
+    document.getElementById('section-'+section).classList.remove('hidden');
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+    document.getElementById('nav-'+section).classList.add('active');
+    const titles = {dashboard:'Dashboard',flock:'Quản lý Đàn',health:'Nhật ký Sức khỏe & Thú y',feed:'Quản lý Thức ăn & Môi trường',production:'Quản lý Sản xuất & Kinh doanh',report:'Hệ thống Báo cáo & Phân tích'};
+    const subtitles = {dashboard:'Tổng quan hệ thống trại gà Bình Thuận',flock:'Quản lý thông tin đàn, biến động và sinh trưởng',health:'Lịch tiêm phòng, theo dõi sức khỏe và sử dụng thuốc',feed:'Kho thức ăn, chỉ số môi trường và lịch chiếu sáng',production:'Sản lượng, xuất kho và chi phí vận hành',report:'Báo cáo lãi lỗ và dự báo sản lượng'};
+    document.getElementById('page-title').textContent = titles[section];
+    document.getElementById('page-subtitle').textContent = subtitles[section];
+    if(section==='flock') { populateFlockSelects(); renderFlockTable(); renderVariationTable(); }
+    if(section==='health') { populateFlockSelects(); renderVaccineTable(); renderMortalityTable(); renderMedicineTable(); }
+    if(section==='feed') { renderFeedStockTable(); renderEnvData(); renderLightTable(); }
+    if(section==='production') { populateFlockSelects(); renderProductionTable(); renderExportTable(); renderCostTable(); }
+    if(section==='report') { renderPnL(); renderForecast(); }
+    if(section==='dashboard') { loadDashboard(); }
+}
+
+function showFlockTab(tab) { switchTab('flock-tab-', tab, event); }
+function showHealthTab(tab) { switchTab('health-tab-', tab, event); }
+function showFeedTab(tab) { switchTab('feed-tab-', tab, event); }
+function showProdTab(tab) { switchTab('prod-tab-', tab, event); }
+function showReportTab(tab) { switchTab('report-tab-', tab, event); }
+
+function switchTab(prefix, tab, e) {
+    const parent = e.target.closest('.flex');
+    parent.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.classList.add('bg-white','border','border-gray-200'); });
+    e.target.closest('.tab-btn').classList.add('active');
+    e.target.closest('.tab-btn').classList.remove('bg-white','border','border-gray-200');
+    document.querySelectorAll(`[id^="${prefix}"]`).forEach(d => d.classList.add('hidden'));
+    document.getElementById(prefix+tab).classList.remove('hidden');
+}
+
+// ==================== TOAST ====================
+function toast(msg, type='success') {
+    const t = document.getElementById('toast');
+    const colors = {success:'bg-green-500',error:'bg-red-500',warning:'bg-amber-500'};
+    t.className = `fixed bottom-6 right-6 ${colors[type]} text-white px-5 py-3 rounded-xl shadow-2xl text-sm font-medium z-50 flex items-center gap-2`;
+    document.getElementById('toast-msg').textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(()=>t.classList.add('hidden'), 3000);
+}
+
+// ==================== FORMAT ====================
+function fmt(n) { return new Intl.NumberFormat('vi-VN').format(n); }
+function fmtDate(d) { if(!d) return '--'; return new Date(d).toLocaleDateString('vi-VN'); }
+
+// ==================== POPULATE FLOCK SELECTS ====================
+function populateFlockSelects() {
+    const flocks = DB.get('flocks');
+    const options = '<option value="">-- Chọn lô --</option>' + flocks.map(f=>`<option value="${f.id}">${f.id} - ${f.breed}</option>`).join('');
+    ['var-flock','growth-flock','vac-flock','mort-flock','med-flock','prod-flock'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.innerHTML = options;
+    });
+}
+
+// ==================== FLOCK MANAGEMENT ====================
+function addFlock() {
+    const f = {
+        id: document.getElementById('flock-id').value.trim(),
+        date: document.getElementById('flock-date').value,
+        breed: document.getElementById('flock-breed').value,
+        origin: document.getElementById('flock-origin').value.trim(),
+        qty: parseInt(document.getElementById('flock-qty').value)||0,
+        currentQty: parseInt(document.getElementById('flock-qty').value)||0,
+        house: document.getElementById('flock-house').value.trim()
+    };
+    if(!f.id||!f.breed||!f.qty) return toast('Vui lòng nhập đầy đủ thông tin','error');
+    const flocks = DB.get('flocks');
+    if(flocks.find(x=>x.id===f.id)) return toast('Mã lô đã tồn tại','error');
+    DB.push('flocks', f);
+    renderFlockTable();
+    toast('Đã thêm lô/đàn '+f.id);
+    ['flock-id','flock-origin','flock-house'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('flock-qty').value='';
+    document.getElementById('flock-breed').value='';
+}
+
+function renderFlockTable() {
+    const flocks = DB.get('flocks');
+    document.getElementById('flock-table').innerHTML = flocks.length === 0 
+        ? '<tr><td colspan="8" class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-2 block"></i>Chưa có dữ liệu</td></tr>'
+        : flocks.map((f,i)=>`<tr class="table-row border-b border-gray-50">
+            <td class="px-4 py-3 font-semibold text-amber-600">${f.id}</td>
+            <td class="px-4 py-3">${fmtDate(f.date)}</td>
+            <td class="px-4 py-3"><span class="badge ${f.breed==='Gà thịt'?'bg-orange-100 text-orange-700':f.breed==='Gà đẻ'?'bg-yellow-100 text-yellow-700':'bg-blue-100 text-blue-700'}">${f.breed}</span></td>
+            <td class="px-4 py-3">${f.origin}</td>
+            <td class="px-4 py-3">${fmt(f.qty)}</td>
+            <td class="px-4 py-3 font-bold text-green-600">${fmt(f.currentQty)}</td>
+            <td class="px-4 py-3">${f.house}</td>
+            <td class="px-4 py-3"><button onclick="deleteFlock(${i})" class="text-red-400 hover:text-red-600 transition"><i class="fas fa-trash-alt"></i></button></td>
+        </tr>`).join('');
+}
+
+function deleteFlock(i) {
+    if(!confirm('Xác nhận xóa lô này?')) return;
+    const d = DB.get('flocks'); d.splice(i,1); DB.set('flocks',d);
+    renderFlockTable(); toast('Đã xóa','warning');
+}
+
+// Variation
+function addVariation() {
+    const flockId = document.getElementById('var-flock').value;
+    const vIn = parseInt(document.getElementById('var-in').value)||0;
+    const vOut = parseInt(document.getElementById('var-out').value)||0;
+    if(!flockId) return toast('Chọn lô','error');
+    const flocks = DB.get('flocks');
+    const flock = flocks.find(f=>f.id===flockId);
+    flock.currentQty = (flock.currentQty||flock.qty) + vIn - vOut;
+    DB.set('flocks', flocks);
+    DB.push('variations', {date:document.getElementById('var-date').value, flockId, in:vIn, out:vOut, after:flock.currentQty});
+    renderVariationTable(); toast('Đã cập nhật biến động');
+}
+
+function renderVariationTable() {
+    const data = DB.get('variations');
+    document.getElementById('variation-table').innerHTML = data.length===0
+        ? '<tr><td colspan="5" class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-2 block"></i>Chưa có dữ liệu</td></tr>'
+        : data.slice().reverse().map(v=>`<tr class="table-row border-b border-gray-50">
+            <td class="px-4 py-3">${fmtDate(v.date)}</td>
+            <td class="px-4 py-3 font-semibold text-amber-600">${v.flockId}</td>
+            <td class="px-4 py-3 text-green-600">+${fmt(v.in)}</td>
+            <td class="px-4 py-3 text-red-600">-${fmt(v.out)}</td>
+            <td class="px-4 py-3 font-bold">${fmt(v.after)}</td>
+        </tr>`).join('');
+}
+
+// Growth
+let growthChartInstance = null;
+function addGrowth() {
+    const flockId = document.getElementById('growth-flock').value;
+    const week = parseInt(document.getElementById('growth-week').value)||0;
+    const weight = parseInt(document.getElementById('growth-weight').value)||0;
+    if(!flockId||!week||!weight) return toast('Nhập đầy đủ thông tin','error');
+    DB.push('growth', {flockId, week, weight});
+    renderGrowthChart(flockId);
+    toast('Đã cập nhật trọng lượng');
+}
+
+function renderGrowthChart(flockId) {
+    if(!flockId) flockId = document.getElementById('growth-flock').value;
+    const data = DB.get('growth').filter(g=>g.flockId===flockId).sort((a,b)=>a.week-b.week);
+    const standard = [0,180,450,850,1200,1600,2000,2350,2600]; // chuẩn gà thịt
+    const weeks = data.map(d=>'Tuần '+d.week);
+    const weights = data.map(d=>d.weight);
+    const stdW = data.map(d=>standard[d.week]||0);
+    if(growthChartInstance) growthChartInstance.destroy();
+    const ctx = document.getElementById('growthChart').getContext('2d');
+    growthChartInstance = new Chart(ctx, {
+        type:'line',
+        data:{
+            labels: weeks.length?weeks:['Tuần 1','Tuần 2','Tuần 3','Tuần 4','Tuần 5','Tuần 6','Tuần 7','Tuần 8'],
+            datasets:[
+                {label:'Thực tế (g)',data:weights.length?weights:[],borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.1)',fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'#f59e0b',borderWidth:3},
+                {label:'Chuẩn giống (g)',data:stdW.length?stdW:standard.slice(1),borderColor:'#94a3b8',backgroundColor:'rgba(148,163,184,0.05)',fill:false,tension:0.4,borderDash:[5,5],pointRadius:3,borderWidth:2}
+            ]
+        },
+        options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,title:{display:true,text:'Trọng lượng (gram)'}}}}
+    });
+}
+
+// ==================== HEALTH ====================
+function addVaccine() {
+    const v = {
+        flockId: document.getElementById('vac-flock').value,
+        name: document.getElementById('vac-name').value.trim(),
+        date: document.getElementById('vac-date').value,
+        remind: parseInt(document.getElementById('vac-remind').value)||30
+    };
+    if(!v.flockId||!v.name) return toast('Nhập đầy đủ thông tin','error');
+    const remindDate = new Date(v.date);
+    remindDate.setDate(remindDate.getDate()+v.remind);
+    v.remindDate = remindDate.toISOString().split('T')[0];
+    DB.push('vaccines', v);
+    renderVaccineTable(); toast('Đã lưu lịch tiêm vaccine');
+}
+
+function renderVaccineTable() {
+    const data = DB.get('vaccines');
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('vaccine-table').innerHTML = data.length===0
+        ? '<tr><td colspan="6" class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-2 block"></i>Chưa có dữ liệu</td></tr>'
+        : data.map((v,i)=>{
+            const overdue = v.remindDate <= today;
+            const soon = !overdue && new Date(v.remindDate) - new Date() < 7*86400000;
+            return `<tr class="table-row border-b border-gray-50">
+                <td class="px-4 py-3 font-semibold text-amber-600">${v.flockId}</td>
+                <td class="px-4 py-3">${v.name}</td>
+                <td class="px-4 py-3">${fmtDate(v.date)}</td>
+                <td class="px-4 py-3">${fmtDate(v.remindDate)}</td>
+                <td class="px-4 py-3">${overdue?'<span class="badge bg-red-100 text-red-700"><i class="fas fa-exclamation-circle mr-1"></i>Quá hạn</span>':soon?'<span class="badge bg-amber-100 text-amber-700"><i class="fas fa-clock mr-1"></i>Sắp đến</span>':'<span class="badge bg-green-100 text-green-700"><i class="fas fa-check mr-1"></i>Đã tiêm</span>'}</td>
+                <td class="px-4 py-3"><button onclick="deleteItem('vaccines',${i},renderVaccineTable)" class="text-red-400 hover:text-red-600"><i class="fas fa-trash-alt"></i></button></td>
+            </tr>`;
+        }).join('');
+}
+
+// Mortality
+let mortalityChartInstance = null;
+function addMortality() {
+    const m = {
+        flockId: document.getElementById('mort-flock').value,
+        date: document.getElementById('mort-date').value,
+        qty: parseInt(document.getElementById('mort-qty').value)||0,
+        reason: document.getElementById('mort-reason').value.trim()
+    };
+    if(!m.flockId||!m.qty) return toast('Nhập đầy đủ thông tin','error');
+    // Update flock currentQty
+    const flocks = DB.get('flocks');
+    const flock = flocks.find(f=>f.id===m.flockId);
+    if(flock) { flock.currentQty -= m.qty; DB.set('flocks', flocks); }
+    m.rate = flock ? ((m.qty / flock.currentQty)*100).toFixed(2)+'%' : 'N/A';
+    DB.push('mortality', m);
+    renderMortalityTable();
+    renderMortalityChart();
+    checkDiseaseAlerts();
+    toast('Đã ghi nhận','warning');
+}
+
+function renderMortalityTable() {
+    const data = DB.get('mortality');
+    document.getElementById('mortality-table').innerHTML = data.length===0
+        ? '<tr><td colspan="5" class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-2 block"></i>Chưa có dữ liệu</td></tr>'
+        : data.slice().reverse().map(m=>`<tr class="table-row border-b border-gray-50">
+            <td class="px-4 py-3">${fmtDate(m.date)}</td>
+            <td class="px-4 py-3 font-semibold text-amber-600">${m.flockId}</td>
+            <td class="px-4 py-3 text-red-600 font-bold">${m.qty}</td>
+            <td class="px-4 py-3">${m.reason||'Không xác định'}</td>
+            <td class="px-4 py-3"><span class="badge bg-red-100 text-red-700">${m.rate}</span></td>
+        </tr>`).join('');
+}
+
+function renderMortalityChart() {
+    const data = DB.get('mortality').slice(-7);
+    if(mortalityChartInstance) mortalityChartInstance.destroy();
+    const ctx = document.getElementById('mortalityChart');
+    if(!ctx) return;
+    mortalityChartInstance = new Chart(ctx.getContext('2d'), {
+        type:'bar',
+        data:{
+            labels: data.map(d=>fmtDate(d.date)),
+            datasets:[{label:'Số chết',data:data.map(d=>d.qty),backgroundColor:'rgba(239,68,68,0.7)',borderRadius:8}]
+        },
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+    });
+}
+
+function checkDiseaseAlerts() {
+    const data = DB.get('mortality');
+    const el = document.getElementById('disease-alerts');
+    if(data.length<2) { el.innerHTML='<p class="text-sm text-gray-400 text-center py-4">Chưa đủ dữ liệu để phân tích</p>'; return; }
+    const last3 = data.slice(-3);
+    const totalDead = last3.reduce((s,m)=>s+m.qty,0);
+    let html = '';
+    if(totalDead > 15) {
+        html += '<div class="p-3 bg-red-50 rounded-xl border border-red-200"><p class="text-xs font-semibold text-red-700"><i class="fas fa-exclamation-triangle mr-1"></i>CẢNH BÁO: Tỷ lệ chết cao bất thường!</p><p class="text-[10px] text-red-500 mt-1">'+totalDead+' con chết trong 3 ngày gần nhất. Cần kiểm tra dịch bệnh ngay!</p></div>';
+    } else if(totalDead > 8) {
+        html += '<div class="p-3 bg-amber-50 rounded-xl border border-amber-200"><p class="text-xs font-semibold text-amber-700"><i class="fas fa-exclamation-circle mr-1"></i>LƯU Ý: Tỷ lệ chết có xu hướng tăng</p><p class="text-[10px] text-amber-500 mt-1">'+totalDead+' con chết trong 3 ngày. Theo dõi thêm.</p></div>';
+    } else {
+        html += '<div class="p-3 bg-green-50 rounded-xl border border-green-200"><p class="text-xs font-semibold text-green-700"><i class="fas fa-check-circle mr-1"></i>Bình thường</p><p class="text-[10px] text-green-500 mt-1">Tỷ lệ chết trong giới hạn cho phép.</p></div>';
+    }
+    el.innerHTML = html;
+}
+
+// Medicine
+function addMedicine() {
+    const m = {
+        flockId: document.getElementById('med-flock').value,
+        name: document.getElementById('med-name').value.trim(),
+        dosage: document.getElementById('med-dosage').value.trim(),
+        start: document.getElementById('med-start').value,
+        end: document.getElementById('med-end').value,
+        withdraw: parseInt(document.getElementById('med-withdraw').value)||0
+    };
+    if(!m.flockId||!m.name) return toast('Nhập đầy đủ thông tin','error');
+    const safeDate = new Date(m.end);
+    safeDate.setDate(safeDate.getDate()+m.withdraw);
+    m.safeDate = safeDate.toISOString().split('T')[0];
+    DB.push('medicines', m);
+    renderMedicineTable(); toast('Đã lưu ghi chép thuốc');
+}
+
+function renderMedicineTable() {
+    const data = DB.get('medicines');
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('medicine-table').innerHTML = data.length===0
+        ? '<tr><td colspan="7" class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-2 block"></i>Chưa có dữ liệu</td></tr>'
+        : data.map(m=>`<tr class="table-row border-b border-gray-50">
+            <td class="px-4 py-3 font-semibold text-amber-600">${m.flockId}</td>
+            <td class="px-4 py-3">${m.name}</td>
+            <td class="px-4 py-3">${m.dosage}</td>
+            <td class="px-4 py-3">${fmtDate(m.start)}</td>
+            <td class="px-4 py-3">${fmtDate(m.end)}</td>
+            <td class="px-4 py-3">${m.withdraw} ngày</td>
+            <td class="px-4 py-3">${m.safeDate<=today?'<span class="badge bg-green-100 text-green-700"><i class="fas fa-check mr-1"></i>An toàn</span>':'<span class="badge bg-red-100 text-red-700"><i class="fas fa-ban mr-1"></i>Đang cách ly ('+fmtDate(m.safeDate)+')</span>'}</td>
+        </tr>`).join('');
+}
+
+// ==================== FEED & ENVIRONMENT ====================
+function addFeedStock() {
+    const f = {
+        date: document.getElementById('feed-date').value,
+        type: document.getElementById('feed-type').value.trim(),
+        in: parseFloat(document.getElementById('feed-in').value)||0,
+        out: parseFloat(document.getElementById('feed-out').value)||0
+    };
+    if(!f.type) return toast('Nhập loại cám','error');
+    DB.push('feedstock', f);
+    renderFeedStockTable(); toast('Đã cập nhật kho thức ăn');
+}
+
+function renderFeedStockTable() {
+    const data = DB.get('feedstock');
+    let running = 0;
+    const rows = data.map(f => { running += f.in - f.out; return {...f, stock: running}; });
+    document.getElementById('feed-stock-total').textContent = fmt(running)+' kg';
+    const todayData = data.filter(f=>f.date===new Date().toISOString().split('T')[0]);
+    const todayConsume = todayData.reduce((s,f)=>s+f.out,0);
+    document.getElementById('feed-today-consume').textContent = fmt(todayConsume)+' kg';
+    // FCR calc
+    const totalFeed = data.reduce((s,f)=>s+f.out,0);
+    const flocks = DB.get('flocks');
+    const totalBirds = flocks.reduce((s,f)=>s+f.currentQty,0);
+    const avgWeight = 2.5; // assume avg 2.5kg
+    const fcr = totalBirds > 0 ? (totalFeed / (totalBirds * avgWeight)).toFixed(2) : '0.00';
+    document.getElementById('feed-fcr').textContent = fcr;
+    
+    document.getElementById('feed-stock-table').innerHTML = rows.length===0
+        ? '<tr><td colspan="5" class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-2 block"></i>Chưa có dữ liệu</td></tr>'
+        : rows.slice().reverse().map(f=>`<tr class="table-row border-b border-gray-50">
+            <td class="px-4 py-3">${fmtDate(f.date)}</td>
+            <td class="px-4 py-3">${f.type}</td>
+            <td class="px-4 py-3 text-green-600">+${fmt(f.in)}</td>
+            <td class="px-4 py-3 text-red-600">-${fmt(f.out)}</td>
+            <td class="px-4 py-3 font-bold">${fmt(f.stock)} kg</td>
+        </tr>`).join('');
+}
+
+// Environment
+let envChartInstance = null;
+function addEnvData() {
+    const e = {
+        date: document.getElementById('env-date').value,
+        house: document.getElementById('env-house').value.trim(),
+        temp: parseFloat(document.getElementById('env-temp').value)||0,
+        humid: parseFloat(document.getElementById('env-humid').value)||0,
+        vent: document.getElementById('env-vent').value
+    };
+    if(!e.house) return toast('Nhập chuồng','error');
+    DB.push('environment', e);
+    renderEnvData(); toast('Đã lưu chỉ số môi trường');
+}
+
+function renderEnvData() {
+    const data = DB.get('environment');
+    if(data.length) {
+        const avgT = (data.reduce((s,d)=>s+d.temp,0)/data.length).toFixed(1);
+        const avgH = (data.reduce((s,d)=>s+d.humid,0)/data.length).toFixed(1);
+        document.getElementById('env-avg-temp').textContent = avgT+'°C';
+        document.getElementById('env-avg-humid').textContent = avgH+'%';
+        const ventCounts = {};
+        data.forEach(d=>{ventCounts[d.vent]=(ventCounts[d.vent]||0)+1;});
+        const topVent = Object.entries(ventCounts).sort((a,b)=>b[1]-a[1])[0];
+        document.getElementById('env-avg-vent').textContent = topVent?topVent[0]:'--';
+    }
+    // Chart
+    if(envChartInstance) envChartInstance.destroy();
+    const ctx = document.getElementById('envChart');
+    if(!ctx) return;
+    const last10 = data.slice(-10);
+    envChartInstance = new Chart(ctx.getContext('2d'), {
+        type:'line',
+        data:{
+            labels: last10.map(d=>d.date?d.date.split('T')[1]||fmtDate(d.date):''),
+            datasets:[
+                {label:'Nhiệt độ (°C)',data:last10.map(d=>d.temp),borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.1)',fill:true,tension:0.4,borderWidth:2},
+                {label:'Độ ẩm (%)',data:last10.map(d=>d.humid),borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.1)',fill:true,tension:0.4,borderWidth:2}
+            ]
+        },
+        options:{responsive:true,plugins:{legend:{position:'bottom'}}}
+    });
+}
+
+// Light
+function addLightSchedule() {
+    const l = {
+        house: document.getElementById('light-house').value.trim(),
+        on: document.getElementById('light-on').value,
+        off: document.getElementById('light-off').value,
+        lux: parseInt(document.getElementById('light-lux').value)||0
+    };
+    if(!l.house||!l.on||!l.off) return toast('Nhập đầy đủ','error');
+    DB.push('lighting', l);
+    renderLightTable(); toast('Đã lưu lịch chiếu sáng');
+}
+
+function renderLightTable() {
+    const data = DB.get('lighting');
+    document.getElementById('light-table').innerHTML = data.length===0
+        ? '<tr><td colspan="6" class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-2 block"></i>Chưa có dữ liệu</td></tr>'
+        : data.map((l,i)=>{
+            const [oh,om] = l.on.split(':').map(Number);
+            const [fh,fm] = l.off.split(':').map(Number);
+            let dur = (fh*60+fm)-(oh*60+om); if(dur<0) dur+=1440;
+            return `<tr class="table-row border-b border-gray-50">
+                <td class="px-4 py-3 font-semibold">${l.house}</td>
+                <td class="px-4 py-3"><i class="fas fa-sun text-yellow-500 mr-1"></i>${l.on}</td>
+                <td class="px-4 py-3"><i class="fas fa-moon text-indigo-400 mr-1"></i>${l.off}</td>
+                <td class="px-4 py-3">${Math.floor(dur/60)}h ${dur%60}m</td>
+                <td class="px-4 py-3">${l.lux} lux</td>
+                <td class="px-4 py-3"><button onclick="deleteItem('lighting',${i},renderLightTable)" class="text-red-400 hover:text-red-600"><i class="fas fa-trash-alt"></i></button></td>
+            </tr>`;
+        }).join('');
+}
+
+// ==================== PRODUCTION ====================
+let eggChartInstance = null;
+function addProduction() {
+    const p = {
+        flockId: document.getElementById('prod-flock').value,
+        date: document.getElementById('prod-date').value,
+        eggs: parseInt(document.getElementById('prod-eggs').value)||0,
+        weight: parseInt(document.getElementById('prod-weight').value)||0
+    };
+    if(!p.flockId) return toast('Chọn lô','error');
+    DB.push('production', p);
+    renderProductionTable(); toast('Đã ghi nhận sản lượng');
+}
+
+function renderProductionTable() {
+    const data = DB.get('production');
+    document.getElementById('production-table').innerHTML = data.length===0
+        ? '<tr><td colspan="5" class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-2 block"></i>Chưa có dữ liệu</td></tr>'
+        : data.slice().reverse().map(p=>`<tr class="table-row border-b border-gray-50">
+            <td class="px-4 py-3">${fmtDate(p.date)}</td>
+            <td class="px-4 py-3 font-semibold text-amber-600">${p.flockId}</td>
+            <td class="px-4 py-3">${p.eggs?fmt(p.eggs)+' quả':'--'}</td>
+            <td class="px-4 py-3">${p.weight?fmt(p.weight)+' g':'--'}</td>
+            <td class="px-4 py-3 text-gray-400">--</td>
+        </tr>`).join('');
+    // Egg chart
+    if(eggChartInstance) eggChartInstance.destroy();
+    const ctx = document.getElementById('eggChart');
+    if(!ctx) return;
+    const last7 = data.filter(p=>p.eggs>0).slice(-7);
+    eggChartInstance = new Chart(ctx.getContext('2d'), {
+        type:'bar',
+        data:{
+            labels:last7.map(p=>fmtDate(p.date)),
+            datasets:[{label:'Số trứng',data:last7.map(p=>p.eggs),backgroundColor:'rgba(245,158,11,0.7)',borderRadius:8}]
+        },
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+    });
+}
+
+// Export
+function addExport() {
+    const e = {
+        date: document.getElementById('exp-date').value,
+        customer: document.getElementById('exp-customer').value.trim(),
+        product: document.getElementById('exp-product').value,
+        qty: parseInt(document.getElementById('exp-qty').value)||0,
+        price: parseInt(document.getElementById('exp-price').value)||0,
+        payment: document.getElementById('exp-payment').value
+    };
+    e.total = e.qty * e.price;
+    if(!e.customer||!e.qty) return toast('Nhập đầy đủ','error');
+    DB.push('exports', e);
+    renderExportTable(); toast('Đã lưu phiếu xuất');
+}
+
+function renderExportTable() {
+    const data = DB.get('exports');
+    document.getElementById('export-table').innerHTML = data.length===0
+        ? '<tr><td colspan="7" class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-2 block"></i>Chưa có dữ liệu</td></tr>'
+        : data.slice().reverse().map(e=>`<tr class="table-row border-b border-gray-50">
+            <td class="px-4 py-3">${fmtDate(e.date)}</td>
+            <td class="px-4 py-3">${e.customer}</td>
+            <td class="px-4 py-3">${e.product}</td>
+            <td class="px-4 py-3">${fmt(e.qty)}</td>
+            <td class="px-4 py-3">${fmt(e.price)}đ</td>
+            <td class="px-4 py-3 font-bold text-green-600">${fmt(e.total)}đ</td>
+            <td class="px-4 py-3">${e.payment==='Công nợ'?'<span class="badge bg-red-100 text-red-700">Công nợ</span>':'<span class="badge bg-green-100 text-green-700">Đã TT</span>'}</td>
+        </tr>`).join('');
+}
+
+// Cost
+let costPieChartInstance = null;
+function addCost() {
+    const c = {
+        date: document.getElementById('cost-date').value,
+        type: document.getElementById('cost-type').value,
+        amount: parseInt(document.getElementById('cost-amount').value)||0,
+        note: document.getElementById('cost-note').value.trim()
+    };
+    if(!c.amount) return toast('Nhập số tiền','error');
+    DB.push('costs', c);
+    renderCostTable(); toast('Đã ghi nhận chi phí');
+}
+
+function renderCostTable() {
+    const data = DB.get('costs');
+    document.getElementById('cost-table').innerHTML = data.length===0
+        ? '<tr><td colspan="4" class="text-center py-6 text-gray-400 text-xs">Chưa có dữ liệu</td></tr>'
+        : data.slice().reverse().slice(0,10).map(c=>`<tr class="table-row border-b border-gray-50">
+            <td class="px-3 py-2 text-xs">${fmtDate(c.date)}</td>
+            <td class="px-3 py-2 text-xs">${c.type}</td>
+            <td class="px-3 py-2 text-xs font-bold text-red-600">${fmt(c.amount)}đ</td>
+            <td class="px-3 py-2 text-xs text-gray-400">${c.note||'--'}</td>
+        </tr>`).join('');
+    // Pie chart
+    if(costPieChartInstance) costPieChartInstance.destroy();
+    const ctx = document.getElementById('costPieChart');
+    if(!ctx) return;
+    const byType = {};
+    data.forEach(c=>{byType[c.type]=(byType[c.type]||0)+c.amount;});
+    const labels = Object.keys(byType);
+    const values = Object.values(byType);
+    const colors = ['#f59e0b','#ef4444','#3b82f6','#10b981','#8b5cf6','#ec4899','#6b7280'];
+    costPieChartInstance = new Chart(ctx.getContext('2d'), {
+        type:'doughnut',
+        data:{labels,datasets:[{data:values,backgroundColor:colors.slice(0,labels.length),borderWidth:0}]},
+        options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}
+    });
+}
+
+// ==================== REPORTS ====================
+let pnlChartInstance = null;
+function renderPnL() {
+    const exports = DB.get('exports');
+    const costs = DB.get('costs');
+    const totalRevenue = exports.reduce((s,e)=>s+e.total,0);
+    const totalCost = costs.reduce((s,c)=>s+c.amount,0);
+    const profit = totalRevenue - totalCost;
+    document.getElementById('rpt-revenue').textContent = fmt(totalRevenue)+' đ';
+    document.getElementById('rpt-cost').textContent = fmt(totalCost)+' đ';
+    const profitEl = document.getElementById('rpt-profit');
+    profitEl.textContent = (profit>=0?'+':'')+fmt(profit)+' đ';
+    profitEl.className = 'text-2xl font-bold '+(profit>=0?'text-green-700':'text-red-700');
+    // P&L table
+    const costByType = {};
+    costs.forEach(c=>{costByType[c.type]=(costByType[c.type]||0)+c.amount;});
+    const total = totalRevenue + totalCost;
+    let tableHtml = `<tr class="table-row border-b border-gray-50 bg-green-50"><td class="px-4 py-3 font-semibold text-green-700">Doanh thu bán hàng</td><td class="px-4 py-3 font-bold text-green-700">${fmt(totalRevenue)}</td><td class="px-4 py-3">${total>0?(totalRevenue/total*100).toFixed(1):'0'}%</td><td class="px-4 py-3"><span class="badge bg-green-100 text-green-700">Thu</span></td></tr>`;
+    Object.entries(costByType).forEach(([type,amount])=>{
+        tableHtml += `<tr class="table-row border-b border-gray-50"><td class="px-4 py-3 text-red-600">${type}</td><td class="px-4 py-3 text-red-600">${fmt(amount)}</td><td class="px-4 py-3">${total>0?(amount/total*100).toFixed(1):'0'}%</td><td class="px-4 py-3"><span class="badge bg-red-100 text-red-700">Chi</span></td></tr>`;
+    });
+    tableHtml += `<tr class="bg-amber-50 font-bold"><td class="px-4 py-3">LỢI NHUẬN RÒNG</td><td class="px-4 py-3 ${profit>=0?'text-green-700':'text-red-700'}">${(profit>=0?'+':'')+fmt(profit)}</td><td class="px-4 py-3">--</td><td class="px-4 py-3"><span class="badge ${profit>=0?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${profit>=0?'Lãi':'Lỗ'}</span></td></tr>`;
+    document.getElementById('pnl-table').innerHTML = tableHtml || '<tr><td colspan="4" class="text-center py-8 text-gray-400">Chưa có dữ liệu</td></tr>';
+    // PNL Chart
+    if(pnlChartInstance) pnlChartInstance.destroy();
+    const ctx = document.getElementById('pnlChart');
+    if(!ctx) return;
+    const months = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'];
+    const revByMonth = new Array(12).fill(0);
+    const costByMonth = new Array(12).fill(0);
+    exports.forEach(e=>{const m=new Date(e.date).getMonth();revByMonth[m]+=e.total;});
+    costs.forEach(c=>{const m=new Date(c.date).getMonth();costByMonth[m]+=c.amount;});
+    pnlChartInstance = new Chart(ctx.getContext('2d'), {
+        type:'bar',
+        data:{
+            labels:months,
+            datasets:[
+                {label:'Doanh thu',data:revByMonth,backgroundColor:'rgba(16,185,129,0.7)',borderRadius:6},
+                {label:'Chi phí',data:costByMonth,backgroundColor:'rgba(239,68,68,0.7)',borderRadius:6}
+            ]
+        },
+        options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true}}}
+    });
+}
+
+let forecastChartInstance = null;
+function renderForecast() {
+    const flocks = DB.get('flocks');
+    const today = new Date();
+    const rows = flocks.map(f=>{
+        const entryDate = new Date(f.date);
+        const age = Math.floor((today - entryDate)/(86400000));
+        let harvestDate, estQty, estRevenue;
+        if(f.breed==='Gà thịt') {
+            const daysLeft = Math.max(0, 42 - age); // ~6 weeks for broiler
+            harvestDate = new Date(today.getTime()+daysLeft*86400000);
+            estQty = Math.round(f.currentQty * 0.95);
+            estRevenue = estQty * 2.5 * 45000; // 2.5kg * 45k/kg
+        } else if(f.breed==='Gà đẻ') {
+            harvestDate = new Date(entryDate.getTime()+540*86400000); // ~18 months
+            estQty = f.currentQty;
+            estRevenue = estQty * 280 * 3500; // 280 eggs/year * 3500đ
+        } else {
+            harvestDate = new Date(entryDate.getTime()+365*86400000);
+            estQty = Math.round(f.currentQty * 0.5);
+            estRevenue = estQty * 120000; // price per breeding chicken
+        }
+        return `<tr class="table-row border-b border-gray-50">
+            <td class="px-4 py-3 font-semibold text-amber-600">${f.id}</td>
+            <td class="px-4 py-3"><span class="badge ${f.breed==='Gà thịt'?'bg-orange-100 text-orange-700':f.breed==='Gà đẻ'?'bg-yellow-100 text-yellow-700':'bg-blue-100 text-blue-700'}">${f.breed}</span></td>
+            <td class="px-4 py-3">${fmt(f.currentQty)}</td>
+            <td class="px-4 py-3">${age} ngày</td>
+            <td class="px-4 py-3">${fmtDate(harvestDate.toISOString().split('T')[0])}</td>
+            <td class="px-4 py-3 font-bold">${fmt(estQty)}</td>
+            <td class="px-4 py-3 font-bold text-green-600">${fmt(estRevenue)}đ</td>
+        </tr>`;
+    });
+    document.getElementById('forecast-table').innerHTML = rows.length?rows.join(''):'<tr><td colspan="7" class="text-center py-8 text-gray-400">Chưa có dữ liệu đàn</td></tr>';
+    
+    // Forecast chart
+    if(forecastChartInstance) forecastChartInstance.destroy();
+    const ctx = document.getElementById('forecastChart');
+    if(!ctx) return;
+    const nextMonths = [];
+    const forecastRevs = [];
+    for(let i=0;i<6;i++){
+        const d = new Date(); d.setMonth(d.getMonth()+i);
+        nextMonths.push('T'+(d.getMonth()+1)+'/'+d.getFullYear());
+        let rev = 0;
+        flocks.forEach(f=>{
+            if(f.breed==='Gà đẻ') rev += f.currentQty * 25 * 3500 * (0.9+Math.random()*0.1); // daily eggs
+            else if(f.breed==='Gà thịt') rev += (i===0||i===1? f.currentQty*2.5*45000*0.3 : 0);
+        });
+        forecastRevs.push(Math.round(rev));
+    }
+    forecastChartInstance = new Chart(ctx.getContext('2d'), {
+        type:'line',
+        data:{
+            labels:nextMonths,
+            datasets:[{label:'Doanh thu dự báo (VNĐ)',data:forecastRevs,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.1)',fill:true,tension:0.4,borderWidth:3,pointRadius:5,pointBackgroundColor:'#f59e0b'}]
+        },
+        options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true}}}
+    });
+}
+
+// ==================== DELETE GENERIC ====================
+function deleteItem(key, idx, renderFn) {
+    if(!confirm('Xác nhận xóa?')) return;
+    const d = DB.get(key); d.splice(idx,1); DB.set(key,d);
+    if(typeof renderFn === 'function') renderFn();
+    toast('Đã xóa','warning');
+}
+
+// ==================== DASHBOARD ====================
+let dashRevenueChartInstance = null, dashFeedChartInstance = null, dashFlockPieInstance = null;
+
+function loadDashboard() {
+    const flocks = DB.get('flocks');
+    const totalFlock = flocks.reduce((s,f)=>s+f.currentQty,0);
+    document.getElementById('dash-total-flock').textContent = fmt(totalFlock);
+    const mortality = DB.get('mortality');
+    const thisMonth = mortality.filter(m=>new Date(m.date).getMonth()===new Date().getMonth());
+    const totalDead = thisMonth.reduce((s,m)=>s+m.qty,0);
+    document.getElementById('dash-mortality').textContent = fmt(totalDead)+' con';
+    const rate = totalFlock>0?(totalDead/totalFlock*100).toFixed(2):0;
+    document.getElementById('dash-mortality-badge').textContent = rate+'%';
+    const production = DB.get('production');
+    const todayProd = production.filter(p=>p.date===new Date().toISOString().split('T')[0]);
+    const todayEggs = todayProd.reduce((s,p)=>s+p.eggs,0);
+    document.getElementById('dash-eggs').textContent = fmt(todayEggs)+' quả';
+    const exports = DB.get('exports');
+    const thisMonthExp = exports.filter(e=>new Date(e.date).getMonth()===new Date().getMonth());
+    const monthRevenue = thisMonthExp.reduce((s,e)=>s+e.total,0);
+    document.getElementById('dash-revenue').textContent = fmt(monthRevenue)+'đ';
+}
+
+function initDashboardCharts() {
+    // Revenue chart
+    const ctx1 = document.getElementById('dashRevenueChart');
+    if(ctx1) {
+        dashRevenueChartInstance = new Chart(ctx1.getContext('2d'), {
+            type:'line',
+            data:{
+                labels:['T7','T8','T9','T10','T11','T12'],
+                datasets:[
+                    {label:'Doanh thu',data:[45000000,52000000,48000000,61000000,58000000,65000000],borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.1)',fill:true,tension:0.4,borderWidth:2},
+                    {label:'Chi phí',data:[38000000,41000000,39000000,43000000,42000000,44000000],borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.05)',fill:true,tension:0.4,borderWidth:2,borderDash:[5,5]}
+                ]
+            },
+            options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v/1000000)+'tr'}}}}
+        });
+    }
+    // Feed stock
+    const ctx2 = document.getElementById('dashFeedChart');
+    if(ctx2) {
+        dashFeedChartInstance = new Chart(ctx2.getContext('2d'), {
+            type:'bar',
+            data:{
+                labels:['Cám C520','Cám C550','Premix','Ngô','Đậu nành'],
+                datasets:[{label:'Tồn kho (kg)',data:[2500,1800,500,3200,1200],backgroundColor:['#f59e0b','#d97706','#b45309','#92400e','#78350f'],borderRadius:8}]
+            },
+            options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}
+        });
+    }
+    // Flock pie
+    const ctx3 = document.getElementById('dashFlockPieChart');
+    if(ctx3) {
+        const flocks = DB.get('flocks');
+        const byType = {};
+        flocks.forEach(f=>{byType[f.breed]=(byType[f.breed]||0)+f.currentQty;});
+        const labels = Object.keys(byType).length ? Object.keys(byType) : ['Gà thịt','Gà đẻ','Gà giống'];
+        const values = Object.keys(byType).length ? Object.values(byType) : [5000,3000,1000];
+        dashFlockPieInstance = new Chart(ctx3.getContext('2d'), {
+            type:'doughnut',
+            data:{labels,datasets:[{data:values,backgroundColor:['#f59e0b','#d97706','#92400e'],borderWidth:0,hoverOffset:8}]},
+            options:{responsive:true,cutout:'60%',plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}
+        });
+    }
+}
+</script>
+</body>
+</html>
